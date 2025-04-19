@@ -1,13 +1,33 @@
 import axios from "axios";
- 
-const API_URL = "http://localhost:5000";
- 
+
+const API_URL = "http://localhost:5000/api";
+
 export const fetchProducts = async () => {
     try {
         const response = await axios.get(`${API_URL}/products`);
         return response.data;
     } catch (error) {
         console.error("Error fetching products:", error);
-        return [];
+        throw error;
+    }
+};
+
+export const fetchAlerts = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/alerts`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching alerts:", error);
+        throw error;
+    }
+};
+
+export const fetchRecommendations = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/recommendations`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        throw error;
     }
 };

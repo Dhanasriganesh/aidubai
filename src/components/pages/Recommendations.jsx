@@ -58,7 +58,7 @@ function Recommendations() {
               <p className="text-gray-600">
                 <strong>Place of Origin:</strong> {item.place_of_origin}
               </p>
-              <p className="text-gray-700 font-medium">
+              <p className="text-gray-700 text-lg font-medium">
                 <strong>Recommended Mart:</strong> {item.recommended_mart}
               </p>
             </div>

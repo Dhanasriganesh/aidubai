@@ -44,6 +44,19 @@ function Home() {
             </div>
           </div>
         </Link>
+
+
+        <Link to="/artiware" className="group">
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 h-64 flex flex-col justify-between transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <div className="text-white">
+              <h2 className="text-2xl font-bold mb-4">ArtiWare</h2>
+              <p className="text-purple-100">Virtual Intelligence for Warehouse Management</p>
+            </div>
+            <div className="text-white text-right">
+              <span className="text-sm opacity-75 group-hover:opacity-100 transition-opacity">View Details →</span>
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
   )

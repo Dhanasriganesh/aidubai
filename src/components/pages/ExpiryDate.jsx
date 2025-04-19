@@ -1,61 +1,111 @@
 import React, { useEffect, useState } from "react";
-import { fetchProducts } from "../services/api";
+import axios from "axios"; // Replace this if you use a custom `fetchProducts` service
 import { Link } from "react-router-dom";
 
-const Dashboard = () => {
+const ExpiryDate = () => {
     const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const getProducts = async () => {
-            const data = await fetchProducts();
-            setProducts(data);
+            try {
+                setLoading(true);
+                const response = await axios.get("http://localhost:5000/products");
+                setProducts(response.data);
+                setError(null);
+            } catch (err) {
+                console.error("Error fetching products:", err);
+                setError("Failed to load products. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
         };
         getProducts();
     }, []);
 
-    // Function to determine row color based on expiry date
-    const getRowColor = (expiryDate) => {
-        const today = new Date();
-        const expDate = new Date(expiryDate);
-        const diffDays = (expDate - today) / (1000 * 60 * 60 * 24); // Difference in days
-
-        if (diffDays < 0) return "bg-red-500 text-white"; // Expired (Red)
-        if (diffDays <= 15) return "bg-blue-400 text-white"; // Near Expiry (Blue)
-        return "bg-green-400 text-white"; // Safe (Green)
+    const getRowColor = (daysUntilExpiry) => {
+        if (daysUntilExpiry == null) return "bg-gray-300 text-black";
+        if (daysUntilExpiry <= 5) return "bg-red-500 text-white";
+        if (daysUntilExpiry <= 15) return "bg-blue-400 text-black";
+        return "bg-green-500 text-white";
     };
 
+    const getStatus = (daysUntilExpiry) => {
+        if (daysUntilExpiry == null) return "Unknown";
+        if (daysUntilExpiry < 0) return "Expired";
+        if (daysUntilExpiry <= 15) return "Near Expiry";
+        return "Safe";
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-xl font-semibold">Loading products...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-xl font-semibold text-red-500">{error}</div>
+            </div>
+        );
+    }
+
     return (
-        <div>
-            <div className="p-4">
-                {/* <h1 className="text-xl font-bold mb-4">Warehouse Dashboard</h1> */}
-                <table className="table-auto w-full border">
-                    <thead>
+        <div className="min-h-screen bg-gray-100 p-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">Product Expiry Management</h1>
+
+            <div className="bg-white rounded-lg shadow-lg overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
                         <tr>
-                            <th className="border px-4 py-2">Product Name</th>
-                            <th className="border px-4 py-2">Expiry Date</th>
-                            <th className="border px-4 py-2">Rack/Bin</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expiry Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days Until Expiry</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rack/Bin</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="bg-white divide-y divide-gray-200">
                         {products.map((product) => (
-                            <tr key={product.id} className={getRowColor(product.expiry_date)}>
-                                <td className="border px-4 py-2">{product.name}</td>
-                                <td className="border px-4 py-2">{product.expiry_date}</td>
-                                <td className="border px-4 py-2">{product.rack_bin}</td>
+                            <tr key={product.id} className={getRowColor(product.days_until_expiry)}>
+                                <td className="px-6 py-4 whitespace-nowrap font-medium">{product.name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{formatDate(product.expiry_date)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {product.days_until_expiry != null
+                                        ? product.days_until_expiry < 0
+                                            ? 'Expired'
+                                            : `${product.days_until_expiry} days`
+                                        : 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">{product.rack_bin}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{getStatus(product.days_until_expiry)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-            <div className="flex justify-center gap-10 mt-4">
+
+            <div className="flex justify-center gap-6 mt-8">
                 <Link to="/alerts">
-                    <button className="w-20 p-2 rounded shadow-lg bg-orange-400">
-                        Alerts
+                    <button className="px-6 py-2 bg-orange-500 text-white rounded-lg shadow-md hover:bg-orange-600 transition">
+                        View Alerts
                     </button>
                 </Link>
                 <Link to="/recommendations">
-                    <button className="w-36 p-2 rounded shadow-lg bg-orange-400">
-                        Recommendation
+                    <button className="px-6 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition">
+                        View Recommendations
                     </button>
                 </Link>
             </div>
@@ -63,4 +113,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default ExpiryDate;
